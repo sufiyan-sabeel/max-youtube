@@ -1,0 +1,47 @@
+name: Build the runner
+
+# Compiles the standalone runner and uploads it as a jar. It does not run anything against an APK:
+# the input APK is a local build input and is never uploaded, so the run happens where the APK is.
+# Uploading this jar is allowed — it is MAX's own code.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  runner:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Build the runner jar
+        run: |
+          chmod +x vendor/max-patcher/engine/gradlew || true
+          ./gradlew :cli:fatJar --stacktrace
+
+      - name: Describe the jar
+        run: |
+          ls -l cli/build/libs/
+          sha256sum cli/build/libs/*-all.jar | tee runner-SHA256SUMS.txt
+
+      - name: Upload the runner
+        uses: actions/upload-artifact@v4
+        with:
+          name: max-youtube-cli
+          path: |
+            cli/build/libs/*-all.jar
+            runner-SHA256SUMS.txt
+          if-no-files-found: error

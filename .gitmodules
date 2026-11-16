@@ -1,0 +1,3 @@
+[submodule "vendor/max-patcher"]
+	path = vendor/max-patcher
+	url = https://github.com/sufiyan-sabeel/max-patcher.git
