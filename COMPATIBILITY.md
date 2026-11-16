@@ -22,7 +22,17 @@ not a row.
 
 | APK | SHA-256 | package | versionName | versionCode | State |
 |---|---|---|---|---|---|
-| `YouTube.apk` (also supplied as `YouTube-2.apk`, byte-identical) | `10b51b7075ae0e92e7cba6d3ca393422a2756c214097800ccb89c5c3f01dfb28` | `com.google.android.youtube` | `21.45.82` | `1561310996` | **Experimental** — analysed, never built, never installed |
+| `YouTube.apk` (also supplied as `YouTube-2.apk`, byte-identical) | `10b51b7075ae0e92e7cba6d3ca393422a2756c214097800ccb89c5c3f01dfb28` | `com.google.android.youtube` | `21.45.82` | `1561310996` | **Experimental** — analysed and built, never installed |
+
+### Builds produced from it
+
+| Build | Customisation | Output SHA-256 | Signature | Install tested |
+|---|---|---|---|---|
+| `v0.1.0-test.1` | manifest versionName stamp only — a pipeline marker, not a feature | `8d4ff57b…3318a` | v2, test key | no |
+| `v0.1.0-test.2` | app name → **MAX YouTube** (launcher, recents, share sheet, Settings) | `bc60d314…258c8` | v2, test key, verified with Android `apksigner` | no |
+
+`v0.1.0-test.2` was built twice from the same inputs and produced byte-identical APKs, so the pipeline is
+repeatable for this customisation.
 
 The two uploads are the same file: one SHA-256 for both. No second version has been supplied, so the
 matrix has one row.
