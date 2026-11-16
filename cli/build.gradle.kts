@@ -27,6 +27,8 @@ tasks.register<Jar>("fatJar") {
     archiveClassifier.set("all")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest { attributes["Main-Class"] = "app.maxyoutube.cli.MainKt" }
+    // The included build's jars must exist before they can be expanded into this one.
+    dependsOn(configurations.runtimeClasspath)
     from(sourceSets.main.get().output)
     // Resolved lazily: resolving the runtime classpath during configuration reaches into the
     // included engine build, which Gradle refuses at that point.
