@@ -10,6 +10,9 @@ kotlin {
 dependencies {
     // Resolved from the included build, pinned by the submodule commit. Never from a registry.
     implementation("app.morphe:morphe-patcher")
+    // The engine declares coroutines as `implementation`, so its Flow is not on our compile classpath
+    // through the engine alone. Same version the engine builds against.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 }
 
 application {
