@@ -1,0 +1,20 @@
+# Build inputs and outputs. YouTube's APK is a local input and is never committed.
+*.apk
+*.apks
+*.xapk
+*.mpp
+build/
+report.json
+report-*.json
+
+# Signing material. Never commit a keystore or its password.
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.password
+keystores/
+
+# Python
+__pycache__/
+*.pyc
