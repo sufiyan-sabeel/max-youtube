@@ -5,7 +5,7 @@ import app.morphe.patcher.Patcher
 import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.apk.ApkSigner
 import app.morphe.patcher.apk.ApkUtils.applyTo
-import app.maxyoutube.cli.patch.maxTestStampPatch
+import app.maxyoutube.cli.patch.maxAppLabelPatch
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -65,6 +65,7 @@ fun main(argv: Array<String>) {
     val alias = args.required("alias")
     val passwordEnv = args.required("password-env")
     val stampedVersionName = args.required("stamp")
+    val label = args.required("label")
     val outputName = args.required("name")
 
     val password = System.getenv(passwordEnv)
@@ -91,7 +92,7 @@ fun main(argv: Array<String>) {
     )
 
     val results = patcher.use {
-        it += setOf(maxTestStampPatch(stampedVersionName))
+        it += setOf(maxAppLabelPatch(label, stampedVersionName))
         val collected = runBlocking { it().toList() }
         collected.forEach { result ->
             val exception = result.exception
@@ -134,7 +135,8 @@ fun main(argv: Array<String>) {
         appendLine("    \"sizeBytes\": ${signed.length()},")
         appendLine("    \"sha256\": \"$outputSha\"")
         appendLine("  },")
-        appendLine("  \"patch\": \"${jsonEscape("MAX test build stamp")}\",")
+        appendLine("  \"patch\": \"${jsonEscape("MAX app name")}\",")
+        appendLine("  \"appLabel\": \"${jsonEscape(label)}\",")
         appendLine("  \"stampedVersionName\": \"${jsonEscape(stampedVersionName)}\",")
         appendLine("  \"signing\": {")
         appendLine("    \"alias\": \"${jsonEscape(alias)}\",")
