@@ -29,8 +29,9 @@ jobs:
 
       - name: Build the runner jar
         run: |
-          chmod +x vendor/max-patcher/engine/gradlew || true
-          ./gradlew :cli:fatJar --stacktrace
+          # Files pushed through the GitHub API lose the executable bit.
+          chmod +x gradlew vendor/max-patcher/engine/gradlew
+          bash gradlew :cli:fatJar --stacktrace
 
       - name: Describe the jar
         run: |
