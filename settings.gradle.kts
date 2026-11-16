@@ -1,5 +1,14 @@
 rootProject.name = "max-youtube"
 
+// The runner and the engine resolve their dependencies from these. Google's repository is needed for
+// com.android.tools.build:apksig and apkzlib, which the engine signs with.
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        google()
+    }
+}
+
 pluginManagement {
     repositories {
         mavenCentral()
