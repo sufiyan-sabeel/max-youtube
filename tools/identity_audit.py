@@ -84,8 +84,13 @@ def main() -> int:
     for e in elements:
         tag = e["tag"]
         if tag in COMPONENT_TAGS and e["attrs"].get("android:name"):
-            components.append({"tag": tag, "name": e["attrs"]["android:name"],
-                               "exported": e["attrs"].get("android:exported")})
+            entry = {"tag": tag, "name": e["attrs"]["android:name"],
+                     "exported": e["attrs"].get("android:exported")}
+            # An activity-alias is a name the launcher can use, not a class: what must resolve is its
+            # targetActivity. Checking the alias name itself produces false failures.
+            if tag == "activity-alias":
+                entry["target"] = e["attrs"].get("android:targetActivity")
+            components.append(entry)
         if tag == "provider" and e["attrs"].get("android:authorities"):
             providers.append(e["attrs"]["android:authorities"])
         if tag in IDENTITY_TAGS and e["attrs"].get("android:name"):
@@ -121,7 +126,8 @@ def main() -> int:
         else:
             unresolved = []
             for c in components:
-                name = c["name"]
+                # For an alias, the class that must exist is its target, not the alias name.
+                name = c.get("target") or c["name"]
                 if not name.startswith(".") and "." not in name:
                     continue
                 binary = "L" + name.replace(".", "/") + ";"
