@@ -30,6 +30,7 @@ not a row.
 |---|---|---|---|---|
 | `v0.1.0-test.1` | manifest versionName stamp only — a pipeline marker, not a feature | `8d4ff57b…3318a` | v2, test key | no |
 | `v0.1.0-test.2` | app name → **MAX YouTube** (launcher, recents, share sheet, Settings) | `bc60d314…258c8` | v2, test key, verified with Android `apksigner` | no |
+| `v0.1.1-test.1` | the above **plus** a separate application id `app.maxyoutube.client` for dual installation | `6bf31d10…391afe` | v2, test key, verified with Android `apksigner` | **no — dual install unverified** |
 
 `v0.1.0-test.2` was built twice from the same inputs and produced byte-identical APKs, so the pipeline is
 repeatable for this customisation.
