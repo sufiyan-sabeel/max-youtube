@@ -64,6 +64,14 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("apks", nargs="+")
     p.add_argument("--json")
+    p.add_argument("--expect-package", default=None,
+                   help="reject the set unless every file declares this package")
+    p.add_argument("--expect-version-code", type=int, default=None,
+                   help="reject the set unless every file declares this versionCode")
+    p.add_argument("--expect-abi", default=None,
+                   help="reject the set unless some file carries lib/<abi>/")
+    p.add_argument("--require-libs", action="store_true",
+                   help="reject the set unless native libraries are present")
     args = p.parse_args()
 
     entries = [describe(a) for a in args.apks]
@@ -111,6 +119,27 @@ def main() -> int:
             problems.append("required split type base__abi has no provider: no APK carries lib/<abi>/")
         if "base__density" in required and not have_density:
             print("  note                base__density is satisfied by the base's own resources")
+
+    # ---- strict expectations. A split from another build merges into a broken APK, so refuse early.
+    if args.expect_package:
+        for e in entries:
+            if e["package"] != args.expect_package:
+                problems.append("%s declares package %r, expected %r"
+                                % (e["file"], e["package"], args.expect_package))
+    if args.expect_version_code is not None:
+        for e in entries:
+            if e["versionCode"] != args.expect_version_code:
+                problems.append("%s declares versionCode %r, expected %r"
+                                % (e["file"], e["versionCode"], args.expect_version_code))
+    if args.expect_abi or args.require_libs:
+        abi = args.expect_abi
+        carriers = [e["file"] for e in entries if abi and abi in e["abis"]]
+        if not carriers:
+            problems.append("no file carries lib/%s/ native libraries" % (abi or "<abi>"))
+    # A file that declares no split name and is not the base is not a split at all.
+    for e in entries:
+        if e["file"] != (base or {}).get("file") and not e["split"]:
+            problems.append("%s is not the base and declares no split name: not a split APK" % e["file"])
 
     print()
     print("=== verdict")
