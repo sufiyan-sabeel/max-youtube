@@ -3,6 +3,7 @@ package app.maxyoutube.cli
 import app.morphe.patcher.InternalApi
 import app.morphe.patcher.Patcher
 import app.morphe.patcher.PatcherConfig
+import app.morphe.patcher.apk.ApkMerger
 import app.morphe.patcher.apk.ApkSigner
 import app.morphe.patcher.apk.ApkUtils.applyTo
 import app.maxyoutube.cli.patch.maxAppLabelPatch
@@ -68,6 +69,7 @@ fun main(argv: Array<String>) {
     val stampedVersionName = args.required("stamp")
     val label = args.required("label")
     val newPackage = args.optional("package")
+    val splitDir = args.optional("split-dir")
     val outputName = args.required("name")
 
     val password = System.getenv(passwordEnv)
@@ -80,6 +82,28 @@ fun main(argv: Array<String>) {
     println("input   $inputApk")
     println("sha256  $inputSha")
 
+    // A YouTube base APK is not installable on its own: it declares requiredSplitTypes and carries no
+    // native libraries. Merging base plus splits with the engine's ApkMerger produces one APK and strips
+    // those declarations, which is what makes the result standalone.
+    var patcherInput = inputApk
+    var mergeReport: String? = null
+    if (splitDir != null) {
+        val dir = File(splitDir)
+        require(dir.isDirectory) { "no such split directory: $dir" }
+        val setDir = File(outDir, "split-set").apply { mkdirs() }
+        val files = (dir.listFiles { f -> f.extension == "apk" } ?: emptyArray()).sortedBy { it.name }
+        require(files.isNotEmpty()) { "no .apk files in $splitDir" }
+        files.forEach { it.copyTo(File(setDir, it.name), overwrite = true) }
+        inputApk.copyTo(File(setDir, inputApk.name), overwrite = true)
+
+        val merged = File(outDir, "$outputName.merged.apk")
+        println("merging ${files.size + 1} APKs from $splitDir")
+        ApkMerger().merge(setDir, merged)
+        println("merged  $merged")
+        patcherInput = merged
+        mergeReport = "${files.size + 1} APKs merged from ${files.joinToString(", ") { it.name }}"
+    }
+
     val workDir = Files.createTempDirectory("max-youtube-work").toFile()
     val unsigned = File(outDir, "$outputName.unsigned.apk")
     val signed = File(outDir, outputName)
@@ -88,7 +112,7 @@ fun main(argv: Array<String>) {
 
     val patcher = Patcher(
         PatcherConfig(
-            apkFile = inputApk,
+            apkFile = patcherInput,
             temporaryFilesPath = workDir,
         )
     )
@@ -142,6 +166,7 @@ fun main(argv: Array<String>) {
         appendLine("  \"patch\": \"${jsonEscape("MAX app name")}\",")
         appendLine("  \"appLabel\": \"${jsonEscape(label)}\",")
         appendLine("  \"applicationId\": \"${jsonEscape(newPackage ?: "unchanged")}\",")
+        mergeReport?.let { appendLine("  \"mergedFrom\": \"${jsonEscape(it)}\",") }
         appendLine("  \"stampedVersionName\": \"${jsonEscape(stampedVersionName)}\",")
         appendLine("  \"signing\": {")
         appendLine("    \"alias\": \"${jsonEscape(alias)}\",")
